@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIALO</title>
+<style>
+  body {
+    margin: 0; font-family: 'Segoe UI', sans-serif;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100vh; overflow: hidden;
+    background: linear-gradient(120deg, #ff4e50, #f9d423, #24c6dc, #514a9d);
+    background-size: 400% 400%;
+    animation: moveBG 20s ease infinite;
+    color: #fff;
+  }
+
+
+  @keyframes moveBG {
+    0% {background-position:0% 50%;}
+    50% {background-position:100% 50%;}
+    100% {background-position:0% 50%;}
+  }
+
+
+  h1 {
+    font-size: 3em; text-shadow: 2px 2px 10px #000;
+    margin-bottom: 10px;
+  }
+
+
+  #score, #timer {
+    font-size: 1.8em; margin: 5px;
+    text-shadow: 1px 1px 6px #000;
+    transition: transform 0.2s;
+  }
+
+
+  #gameArea {
+    position: relative;
+    width: 90vw; height: 60vh;
+    background: rgba(0,0,0,0.3); border-radius: 25px;
+    overflow: hidden; box-shadow: 0 0 20px #000;
+  }
+
+
+  .target {
+    position: absolute;
+    width: 70px; height: 70px;
+    border-radius: 50%;
+    cursor: pointer;
+    background: radial-gradient(circle, #ffcc00, #ff0000);
+    animation: bounce 1s infinite alternate;
+    box-shadow: 0 0 20px #fff, 0 0 30px #ffcc00;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+
+  @keyframes bounce {
+    0% {transform: translateY(0) scale(1);}
+    50% {transform: translateY(-25px) scale(1.15);}
+    100% {transform: translateY(0) scale(1);}
+  }
+
+
+  .particle {
+    position: absolute; width: 12px; height: 12px;
+    border-radius: 50%; pointer-events: none;
+    animation: particleAnim 0.7s forwards;
+  }
+
+
+  @keyframes particleAnim {
+    0% {opacity:1; transform: scale(1);}
+    100% {opacity:0; transform: translateY(-40px) scale(0);}
+  }
+</style>
+</head>
+<body>
+
+
+<h1>🔥 RIALO 🔥</h1>
+<div id="score">Score: 0</div>
+<div id="timer">Time: 30s</div>
+<div id="gameArea"></div>
+
+
+<audio id="clickSound" src="https://www.soundjay.com/button/sounds/button-3.mp3"></audio>
+<audio id="gameOverSound" src="https://www.soundjay.com/misc/sounds/fail-buzzer-01.mp3"></audio>
+
+
+<script>
+const gameArea = document.getElementById('gameArea');
+const clickSound = document.getElementById('clickSound');
+const gameOverSound = document.getElementById('gameOverSound');
+
+
+let score = 0;
+let time = 30;
+let target;
+
+
+// Spawn Target
+function spawnTarget() {
+    if(target) target.remove();
+    target = document.createElement('div');
+    target.classList.add('target');
+
+
+    // Random color gradient
+    target.style.background = `radial-gradient(circle, hsl(${Math.random()*360}, 100%, 60%), hsl(${Math.random()*360}, 100%, 50%))`;
+
+
+    // Random position
+    const x = Math.random() * (gameArea.clientWidth - 70);
+    const y = Math.random() * (gameArea.clientHeight - 70);
+    target.style.left = x + 'px';
+    target.style.top = y + 'px';
+
+
+    // Hover scale effect
+    target.addEventListener('mouseenter', () => target.style.transform = 'scale(1.3)');
+    target.addEventListener('mouseleave', () => target.style.transform = 'scale(1)');
+
+
+    gameArea.appendChild(target);
+
+
+    target.addEventListener('click', (e) => {
+        score++;
+        const scoreEl = document.getElementById('score');
+        scoreEl.innerText = 'Score: ' + score;
+        scoreEl.style.transform = 'scale(1.3)';
+        setTimeout(()=> scoreEl.style.transform='scale(1)', 150);
+
+
+        clickSound.currentTime = 0;
+        clickSound.play();
+
+
+        createParticles(e.clientX, e.clientY);
+        spawnTarget();
+    });
+}
+
+
+// Particle effect
+function createParticles(x, y) {
+    for(let i=0; i<12; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.background = `hsl(${Math.random()*360}, 100%, 50%)`;
+        particle.style.transform = `translate(${Math.random()*30-15}px, ${Math.random()*-50}px)`;
+        gameArea.appendChild(particle);
+        setTimeout(() => particle.remove(), 700);
+    }
+}
+
+
+// Timer
+function startTimer() {
+    const timer = setInterval(() => {
+        time--;
+        const timerEl = document.getElementById('timer');
+        timerEl.innerText = 'Time: ' + time + 's';
+        timerEl.style.transform = 'scale(1.2)';
+        setTimeout(()=> timerEl.style.transform='scale(1)', 150);
+
+
+        if(time <= 0) {
+            clearInterval(timer);
+            if(target) target.remove();
+            gameOverSound.play();
+            setTimeout(()=> alert('⏱ Game Over! Your score: ' + score), 100);
+        }
+    }, 1000);
+}
+
+
+// Start Game
+spawnTarget();
+startTimer();
+</script>
+
+
+</body>
+</html>
