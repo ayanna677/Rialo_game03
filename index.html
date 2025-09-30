@@ -87,6 +87,31 @@
     .rialo-title { font-size:18px; }
     .logo-img, .logo-fallback { height:40px; width:40px; }
   }
+
+   /* background canvas */
+  #bgCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: linear-gradient(120deg, #111, #222);
+  }
+
+    /* Score & Timer */
+  .score-timer {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    color: #88ce02;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    display: flex;
+    gap: 18px;
+    z-index: 9999;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+  }
 </style>
 </head>
 <body>
@@ -115,8 +140,16 @@
   <div class="rialo-title">RIALO</div>
 </div>
 
+<!-- Score and Timer -->
+<div class="score-timer">
+  <div id="scoreDisplay">Score: 0</div>
+  <div id="timerDisplay">Time: 60</div>
+</div>
 <!-- hint -->
 <div class="hint">Touch & drag to aim — release to shoot. Tap anywhere to fire (desktop: click).</div>
+
+<!-- Background animation canvas -->
+<canvas id="bgCanvas"></canvas>
 
 <!-- Full game SVG (kept structure from your original) -->
 <svg id="game" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400" overflow="visible" role="img" aria-label="Archery game SVG">
@@ -204,6 +237,45 @@
 <audio id="s-miss" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
 
 <script>
+  // ---------- Background particles ----------
+  var bgCanvas = document.getElementById("bgCanvas");
+  var ctx = bgCanvas.getContext("2d");
+  bgCanvas.width = window.innerWidth;
+  bgCanvas.height = window.innerHeight;
+
+  var particles = [];
+  for(var i=0;i<80;i++){
+    particles.push({
+      x: Math.random()*bgCanvas.width,
+      y: Math.random()*bgCanvas.height,
+      r: Math.random()*2+1,
+      dx: (Math.random()-0.5)*0.3,
+      dy: (Math.random()-0.5)*0.3
+    });
+  }
+
+  function animateBG(){
+    ctx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
+    particles.forEach(p=>{
+      p.x += p.dx;
+      p.y += p.dy;
+      if(p.x>bgCanvas.width) p.x=0;
+      if(p.x<0) p.x=bgCanvas.width;
+      if(p.y>bgCanvas.height) p.y=0;
+      if(p.y<0) p.y=bgCanvas.height;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle = "rgba(136,206,2,0.2)";
+      ctx.fill();
+    });
+    requestAnimationFrame(animateBG);
+  }
+  animateBG();
+
+  window.addEventListener("resize",()=>{
+    bgCanvas.width = window.innerWidth;
+    bgCanvas.height = window.innerHeight;
+  });
 /* --------- DOM references --------- */
 var svg = document.getElementById("game");
 var svgPoint = svg.createSVGPoint();
@@ -534,6 +606,30 @@ function unlockAudioOnFirstGesture(){
 }
 unlockAudioOnFirstGesture();
 
+  /* ----- Score & Timer ----- */
+var score = 0;
+var timeLeft = 60; // seconds
+var scoreDisplay = document.getElementById("scoreDisplay");
+var timerDisplay = document.getElementById("timerDisplay");
+
+var timerInterval = setInterval(()=>{
+  timeLeft--;
+  if(timeLeft<0) timeLeft=0;
+  timerDisplay.textContent = "Time: " + timeLeft;
+  if(timeLeft==0){
+    clearInterval(timerInterval);
+    alert("Game Over! Final Score: " + score);
+  }
+},1000);
+
+// Update score when hit inside showMessage
+var oldShowMessage = showMessage;
+showMessage = function(selector){
+  oldShowMessage(selector);
+  score += (selector===".loveyou")? 50 : 20;
+  scoreDisplay.textContent = "Score: " + score;
+};
 </script>
 </body>
     </html>
+
