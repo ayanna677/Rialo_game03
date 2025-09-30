@@ -1,318 +1,539 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Arrow GAme</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Arrow Game - RIALO</title>
+
+<!-- GSAP + MorphSVG -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.1/TweenMax.min.js"></script>
 <script src="//s3-us-west-2.amazonaws.com/s.cdpn.io/16327/MorphSVGPlugin.min.js"></script>
-<style >
-body{
-margin:0;
-background:#222;
 
-margin:20px;
-}
-svg{
-width:100%;
-height:100%;
-position:fixed;
-top:0;
-left:0;
-}
-span{
-color:white;
-font-family:sans-serif;
-opacity:.3;
-}
+<style>
+  html,body { height:100%; }
+  body{
+    margin:0;
+    background:#111;
+    font-family: Arial, Helvetica, sans-serif;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+  }
+
+  /* main svg covers viewport */
+  svg#game {
+    width:100%;
+    height:100%;
+    position:fixed;
+    top:0;
+    left:0;
+    display:block;
+  }
+
+  /* small helper text bottom-left */
+  .hint {
+    position: fixed;
+    left: 14px;
+    bottom: 14px;
+    color: rgba(255,255,255,0.85);
+    font-size: 13px;
+    opacity: 0.9;
+    z-index: 9999;
+    pointer-events: none;
+  }
+
+  /* Logo + title top-left */
+  .logo-container {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: all 600ms ease;
+  }
+  .logo-container.show { opacity:1; transform: translateY(0); }
+
+  .logo-img {
+    height:48px;
+    width:auto;
+    display:inline-block;
+    border-radius:6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+    background: rgba(255,255,255,0.02);
+  }
+
+  .logo-fallback {
+    height:48px;
+    width:48px;
+    display:none;
+    border-radius:6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+    background:#0f0f0f;
+  }
+
+  .rialo-title {
+    color: #88ce02;
+    font-weight:800;
+    font-size:22px;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+  }
+
+  /* responsive */
+  @media (max-width:420px){
+    .rialo-title { font-size:18px; }
+    .logo-img, .logo-fallback { height:40px; width:40px; }
+  }
 </style>
 </head>
 <body>
-<svg id="game" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400" overflow="visible">
-<linearGradient id="ArcGradient" >
-<stop offset="0" stop-color="#fff" stop-opacity=".2"/>
-<stop offset="50%" stop-color="#fff" stop-opacity="0"/>
-</linearGradient>
-<path id="arc" fill="none" stroke="url(#ArcGradient)" stroke-width="4" d="M100,250c250-400,550-400,800,0" pointer-events="none"/>
-<defs>
-<g id="arrow">
-<line x2="60" fill="none" stroke="#888" stroke-width="2" />
-<polygon fill="#888" points="64 0 58 2 56 0 58 -2" />
-<polygon fill="#88ce02" points="2 -3 -4 -3 -1 0 -4 3 2 3 5 0" />
-</g>
-</defs>
-<g id="target">
-<path fill="#FFF" d="M924.2,274.2c-21.5,21.5-45.9,19.9-52,3.2c-4.4-12.1,2.4-29.2,14.2-41c11.8-11.8,29-18.6,41-14.2 C944.1,228.3,945.7,252.8,924.2,274.2z" />
-<path fill="#F4531C" d="M915.8,265.8c-14.1,14.1-30.8,14.6-36,4.1c-4.1-8.3,0.5-21.3,9.7-30.5s22.2-13.8,30.5-9.7 C930.4,235,929.9,251.7,915.8,265.8z" />
-<path fill="#FFF" d="M908.9,258.9c-8,8-17.9,9.2-21.6,3.5c-3.2-4.9-0.5-13.4,5.6-19.5c6.1-6.1,14.6-8.8,19.5-5.6 C918.1,241,916.9,250.9,908.9,258.9z" />
-<path fill="#F4531C" d="M903.2,253.2c-2.9,2.9-6.7,3.6-8.3,1.7c-1.5-1.8-0.6-5.4,2-8c2.6-2.6,6.2-3.6,8-2 C906.8,246.5,906.1,250.2,903.2,253.2z" />
-</g>
-<g id="bow" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke" pointer-events="none">
-<polyline fill="none" stroke="#ddd" stroke-linecap="round" points="88,200 88,250 88,300"/>
-<path fill="none" stroke="#88ce02" stroke-width="3" stroke-linecap="round" d="M88,300 c0-10.1,12-25.1,12-50s-12-39.9-12-50"/>
-</g>
-<g class="arrow-angle"><use x="100" y="250" xlink:href="#arrow"/></g>
-<clipPath id="mask">
-<polygon opacity=".5" points="0,0 1500,0 1500,200 970,290 950,240 925,220 875,280 890,295 920,310 0,350" pointer-events="none"/>
-</clipPath>
-<g class="arrows" clip-path="url(#mask)" pointer-events="none">
-</g>
-<g class="missyou" fill="#aaa" opacity="0" transform="translate(-50, 50)">
-<path d="M358 194L363 118 386 120 400 153 416 121 440 119 446 203 419 212 416 163 401 180 380 160 381 204"/>
-<path d="M450 120L458 200 475 192 474 121"/>
-<path d="M537 118L487 118 485 160 515 162 509 177 482 171 482 193 529 199 538 148 501 146 508 133 537 137"/>
-<path d="M540 202L543 178 570 186 569 168 544 167 546 122 590 116 586 142 561 140 560 152 586 153 586 205"/>
-<path d="M630 120 L650 160 L670 120 L690 120 L660 170 L660 200 L640 200 L640 170 L610 120 Z"/>
-<!-- o -->
-<path d="M700 160 A20 20 0 1 1 699.9 160"/>
-<!-- u -->
-<path d="M730 140 L730 180 A20 20 0 0 0 770 180 L770 140 L750 140 L750 180 A5 5 0 0 1 750 180 L750 140 Z"/>
-<!-- ! moved -->
-<path d="M790 150 L790 180 L810 180 L810 100 Z M790 200 L810 200 L810 220 L790 220 Z"/>
-</g>
 
-<g class="loveyou" fill="#F4531C" opacity="0" transform="translate(300, 100)">
-<!-- L -->
-<path d="M0 0 L0 80 L30 80 L30 70 L10 70 L10 0 Z"/>
-<!-- O -->
-<path d="M50 40 A20 20 0 1 1 49.9 40"/>
-<!-- V -->
-<path d="M80 0 L100 80 L120 0 L110 0 L100 60 L90 0 Z"/>
-<!-- E -->
-<path d="M140 0 L140 80 L170 80 L170 70 L150 70 L150 50 L170 50 L170 40 L150 40 L150 10 L170 10 L170 0 Z"/>
-<!-- Y -->
-<path d="M190 0 L205 30 L220 0 L230 0 L210 40 L210 80 L200 80 L200 40 L180 0 Z"/>
-<!-- O -->
-<path d="M250 40 A20 20 0 1 1 249.9 40"/>
-<!-- U -->
-<path d="M280 0 L280 50 A20 20 0 0 0 320 50 L320 0 L310 0 L310 50 A10 10 0 0 1 290 50 L290 0 Z"/>
-</g>
-<g class="hit" fill="#ffcc00" opacity="0" transform="translate(180, -80) rotate(12) ">
-<path d="M383 114L385 195 407 191 406 160 422 155 418 191 436 189 444 112 423 119 422 141 407 146 400 113"/>
-<path d="M449 185L453 113 477 112 464 186"/>
-<path d="M486 113L484 130 506 130 481 188 506 187 520 131 540 135 545 119"/>
-<path d="M526,195l5-20l22,5l-9,16L526,195z M558,164l32-44l-35-9l-19,51L558,164z"/>
-</g>
+<!-- Logo + Title (top-left). The image has onerror fallback to the inline SVG. -->
+<div class="logo-container" id="logoBox" aria-hidden="true">
+  <img class="logo-img" id="logoImg"
+       src="https://i.ibb.co/JjfB6MYJ/logo.png"
+       alt="RIALO logo"
+       onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='inline-block'">
+  <!-- fallback inline svg (will show only if image fails) -->
+  <svg id="logoFallback" class="logo-fallback" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" style="display:none">
+    <defs>
+      <linearGradient id="lg" x1="0" x2="1" y1="0" y2="1">
+        <stop offset="0" stop-color="#88ce02"/>
+        <stop offset="1" stop-color="#56a000"/>
+      </linearGradient>
+    </defs>
+    <rect width="100" height="100" rx="12" fill="#0b0b0b"/>
+    <g transform="translate(10,10)">
+      <circle cx="40" cy="40" r="34" fill="url(#lg)"/>
+      <text x="40" y="48" text-anchor="middle" font-family="Arial Black, Arial" font-size="36" fill="#061006">R</text>
+    </g>
+  </svg>
+
+  <div class="rialo-title">RIALO</div>
+</div>
+
+<!-- hint -->
+<div class="hint">Touch & drag to aim — release to shoot. Tap anywhere to fire (desktop: click).</div>
+
+<!-- Full game SVG (kept structure from your original) -->
+<svg id="game" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400" overflow="visible" role="img" aria-label="Archery game SVG">
+  <linearGradient id="ArcGradient" >
+    <stop offset="0" stop-color="#fff" stop-opacity=".2"/>
+    <stop offset="50%" stop-color="#fff" stop-opacity="0"/>
+  </linearGradient>
+
+  <!-- arc path used as flight guide -->
+  <path id="arc" fill="none" stroke="url(#ArcGradient)" stroke-width="4" d="M100,250c250-400,550-400,800,0" pointer-events="none"/>
+
+  <defs>
+    <g id="arrow">
+      <line x2="60" fill="none" stroke="#888" stroke-width="2" />
+      <polygon fill="#888" points="64 0 58 2 56 0 58 -2" />
+      <polygon fill="#88ce02" points="2 -3 -4 -3 -1 0 -4 3 2 3 5 0" />
+    </g>
+    <!-- subtle glow filter for arrow trail -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- target on right -->
+  <g id="target" transform="translate(0,0)">
+    <path fill="#FFF" d="M924.2,274.2c-21.5,21.5-45.9,19.9-52,3.2c-4.4-12.1,2.4-29.2,14.2-41c11.8-11.8,29-18.6,41-14.2 C944.1,228.3,945.7,252.8,924.2,274.2z" />
+    <path fill="#F4531C" d="M915.8,265.8c-14.1,14.1-30.8,14.6-36,4.1c-4.1-8.3,0.5-21.3,9.7-30.5s22.2-13.8,30.5-9.7 C930.4,235,929.9,251.7,915.8,265.8z" />
+    <path fill="#FFF" d="M908.9,258.9c-8,8-17.9,9.2-21.6,3.5c-3.2-4.9-0.5-13.4,5.6-19.5c6.1-6.1,14.6-8.8,19.5-5.6 C918.1,241,916.9,250.9,908.9,258.9z" />
+    <path fill="#F4531C" d="M903.2,253.2c-2.9,2.9-6.7,3.6-8.3,1.7c-1.5-1.8-0.6-5.4,2-8c2.6-2.6,6.2-3.6,8-2 C906.8,246.5,906.1,250.2,903.2,253.2z" />
+  </g>
+
+  <!-- bow on left -->
+  <g id="bow" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke" pointer-events="none">
+    <polyline id="bowPoly" fill="none" stroke="#ddd" stroke-linecap="round" points="88,200 88,250 88,300"/>
+    <path fill="none" stroke="#88ce02" stroke-width="3" stroke-linecap="round" d="M88,300 c0-10.1,12-25.1,12-50s-12-39.9-12-50"/>
+  </g>
+
+  <!-- current arrow attached to bow -->
+  <g class="arrow-angle" aria-hidden="true"><use x="100" y="250" xlink:href="#arrow"/></g>
+
+  <!-- mask to clip arrows flying outside area -->
+  <clipPath id="mask">
+    <polygon opacity=".5" points="0,0 1500,0 1500,200 970,290 950,240 925,220 875,280 890,295 920,310 0,350" pointer-events="none"/>
+  </clipPath>
+
+  <g class="arrows" clip-path="url(#mask)" pointer-events="none"></g>
+
+  <!-- messages (vector shapes/text present already in original) -->
+  <g class="missyou" fill="#aaa" opacity="0" transform="translate(-50, 50)">
+    <path d="M358 194L363 118 386 120 400 153 416 121 440 119 446 203 419 212 416 163 401 180 380 160 381 204"/>
+    <path d="M450 120L458 200 475 192 474 121"/>
+    <path d="M537 118L487 118 485 160 515 162 509 177 482 171 482 193 529 199 538 148 501 146 508 133 537 137"/>
+    <path d="M540 202L543 178 570 186 569 168 544 167 546 122 590 116 586 142 561 140 560 152 586 153 586 205"/>
+    <path d="M630 120 L650 160 L670 120 L690 120 L660 170 L660 200 L640 200 L640 170 L610 120 Z"/>
+    <path d="M700 160 A20 20 0 1 1 699.9 160"/>
+    <path d="M730 140 L730 180 A20 20 0 0 0 770 180 L770 140 L750 140 L750 180 A5 5 0 0 1 750 180 L750 140 Z"/>
+    <path d="M790 150 L790 180 L810 180 L810 100 Z M790 200 L810 200 L810 220 L790 220 Z"/>
+  </g>
+
+  <g class="loveyou" fill="#F4531C" opacity="0" transform="translate(300, 100)">
+    <path d="M0 0 L0 80 L30 80 L30 70 L10 70 L10 0 Z"/>
+    <path d="M50 40 A20 20 0 1 1 49.9 40"/>
+    <path d="M80 0 L100 80 L120 0 L110 0 L100 60 L90 0 Z"/>
+    <path d="M140 0 L140 80 L170 80 L170 70 L150 70 L150 50 L170 50 L170 40 L150 40 L150 10 L170 10 L170 0 Z"/>
+    <path d="M190 0 L205 30 L220 0 L230 0 L210 40 L210 80 L200 80 L200 40 L180 0 Z"/>
+    <path d="M250 40 A20 20 0 1 1 249.9 40"/>
+    <path d="M280 0 L280 50 A20 20 0 0 0 320 50 L320 0 L310 0 L310 50 A10 10 0 0 1 290 50 L290 0 Z"/>
+  </g>
+
+  <g class="hit" fill="#ffcc00" opacity="0" transform="translate(180, -80) rotate(12) ">
+    <path d="M383 114L385 195 407 191 406 160 422 155 418 191 436 189 444 112 423 119 422 141 407 146 400 113"/>
+    <path d="M449 185L453 113 477 112 464 186"/>
+    <path d="M486 113L484 130 506 130 481 188 506 187 520 131 540 135 545 119"/>
+    <path d="M526,195l5-20l22,5l-9,16L526,195z M558,164l32-44l-35-9l-19,51L558,164z"/>
+  </g>
 </svg>
-<span>Draw back an arrow and launch it!</span>
+
+<!-- Sound assets (public urls). Replace with custom URLs if needed. -->
+<audio id="s-release" src="https://actions.google.com/sounds/v1/foley/bow_arrow.ogg" preload="auto"></audio>
+<audio id="s-hit" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="auto"></audio>
+<audio id="s-miss" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
 
 <script>
-var svg = document.querySelector("svg");
-var cursor = svg.createSVGPoint();
-var arrows = document.querySelector(".arrows");
-var randomAngle = 0;
+/* --------- DOM references --------- */
+var svg = document.getElementById("game");
+var svgPoint = svg.createSVGPoint();
+var arrowsGroup = document.querySelector(".arrows");
+var arrowTemplate = document.querySelector("#arrow");
+var arrowAttached = document.querySelector(".arrow-angle use");
+var bow = document.getElementById("bow");
+var bowPoly = document.getElementById("bowPoly");
+var arc = document.getElementById("arc");
+var target = document.getElementById("target");
 
+var logoBox = document.getElementById("logoBox");
 
-let target = { x: 900, y: 249.5 }; // center of target
-let lineSegment = { // target intersection line segment
-x1: 875, y1: 280, x2: 925, y2: 220
-};
+/* sounds */
+var soundRelease = document.getElementById("s-release");
+var soundHit = document.getElementById("s-hit");
+var soundMiss = document.getElementById("s-miss");
+
+/* game geometry (same as original) */
+let targetPoint = { x: 900, y: 249.5 }; // center-ish of target
+let lineSegment = { x1: 875, y1: 280, x2: 925, y2: 220 };
 let pivot = { x: 100, y: 250 }; // bow rotation point
-aim({ clientX: 320, clientY: 300 }); // set up start drag event
-window.addEventListener("mousedown", draw);
-function draw(e) { // pull back arrow
-randomAngle = Math.random() * Math.PI * 0.03 - 0.015;
-TweenMax.to(".arrow-angle use", 0.3, { opacity: 1});
-window.addEventListener("mousemove", aim);
-window.addEventListener("mouseup", loose);
-aim(e);
+
+/* state */
+var randomAngle = 0;
+var pulling = false;
+var currentDistance = 0;
+
+/* show logo with animation */
+setTimeout(function(){ logoBox.classList.add("show"); }, 300);
+
+/* unify pointer events for mouse & touch (works on mobile and desktop) */
+svg.addEventListener("pointerdown", startPull);
+window.addEventListener("pointerup", releasePull);
+window.addEventListener("pointercancel", releasePull);
+window.addEventListener("pointermove", pointerMove); // used while pulling
+
+/* initialize starting aim so bow is in rest position */
+aim({ clientX: 320, clientY: 300 });
+
+/* ----- Functions: user interaction ----- */
+function startPull(e){
+  // only start if primary pointer (main touch / left mouse)
+  if(e.button && e.button !== 0) return;
+  pulling = true;
+  randomAngle = Math.random() * Math.PI * 0.03 - 0.015;
+  // show the attached arrow
+  TweenMax.to(".arrow-angle use", 0.2, { opacity: 1});
+  // small press animation for bow
+  TweenMax.to(bow, 0.25, { scale: 1.02, transformOrigin: "right center", ease: Power1.easeOut});
+  aim(e);
 }
 
-function aim(e) {
-// get mouse position in relation to svg position and scale
-var point = getMouseSVG(e);
-point.x = Math.min(point.x, pivot.x - 7);
-point.y = Math.max(point.y, pivot.y + 7);
-var dx = point.x - pivot.x;
-var dy = point.y - pivot.y;
-// Make it more difficult by adding random angle each time
-var angle = Math.atan2(dy, dx) + randomAngle;
-var bowAngle = angle - Math.PI;
-var distance = Math.min(Math.sqrt(dx * dx + dy * dy), 50);
-var scale = Math.min(Math.max(distance / 30, 1), 2);
-TweenMax.to("#bow", 0.3, {
-scaleX: scale,
-rotation: bowAngle + "rad",
-transformOrigin: "right center"
-});
-var arrowX = Math.min(pivot.x - (1 / scale) * distance, 88);
-TweenMax.to(".arrow-angle", 0.3, {
-rotation: bowAngle + "rad",
-svgOrigin: "100 250"
-});
-TweenMax.to(".arrow-angle use", 0.3, {
-x: -distance
-});
-TweenMax.to("#bow polyline", 0.3, {
-attr: {
-points:
-"88,200 " + Math.min(pivot.x - (1 / scale) * distance, 88) + ",250 88,300"
-}
-});
-
-var radius = distance * 9;
-var offset = {
-x: Math.cos(bowAngle) * radius,
-y: Math.sin(bowAngle) * radius
-};
-var arcWidth = offset.x * 3;
-
-TweenMax.to("#arc", 0.3, {
-attr: {
-d:
-"M100,250c" +
-offset.x +
-"," +
-offset.y +
-"," +
-(arcWidth - offset.x) +
-"," +
-(offset.y + 50) +
-"," +
-arcWidth +
-",50"
-},
-autoAlpha: distance / 60
-});
+function pointerMove(e){
+  if(!pulling) return;
+  aim(e);
 }
 
-function loose() {
-// release arrow
-window.removeEventListener("mousemove", aim);
-window.removeEventListener("mouseup", loose);
-
-TweenMax.to("#bow", 0.4, {
-scaleX: 1,
-transformOrigin: "right center",
-ease: Elastic.easeOut
-});
-TweenMax.to("#bow polyline", 0.4, {
-attr: {
-points: "88,200 88,250 88,300"
-},
-ease: Elastic.easeOut
-});
-// duplicate arrow
-var newArrow = document.createElementNS("http://www.w3.org/2000/svg", "use");
-newArrow.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arrow");
-arrows.appendChild(newArrow);
-
-// animate arrow along path
-var path = MorphSVGPlugin.pathDataToBezier("#arc");
-TweenMax.to([newArrow], 0.5, {
-force3D: true,
-bezier: {
-type: "cubic",
-values: path,
-autoRotate: ["x", "y", "rotation"]
-},
-onUpdate: hitTest,
-onUpdateParams: ["{self}"],
-onComplete: onMiss,
-ease: Linear.easeNone
-});
-TweenMax.to("#arc", 0.3, {
-opacity: 0
-});
-//hide previous arrow
-TweenMax.set(".arrow-angle use", {
-opacity: 0
-});
+function releasePull(e){
+  if(!pulling) return;
+  pulling = false;
+  loose(e);
 }
 
-function hitTest(tween) {
-// check for collisions with arrow and target
-var arrow = tween.target[0];
-var transform = arrow._gsTransform;
-var radians = (transform.rotation * Math.PI) / 180;
-var arrowSegment = {
-x1: transform.x,
-y1: transform.y,
-x2: Math.cos(radians) * 60 + transform.x,
-y2: Math.sin(radians) * 60 + transform.y
-};
+/* ----- aim (same logic as original but resilient to pointer events) ----- */
+function aim(e){
+  if(!e) return;
+  var point = getMouseSVG(e);
+  // constrain point so user can't aim in front of bow weirdly
+  point.x = Math.min(point.x, pivot.x - 7);
+  point.y = Math.max(point.y, pivot.y + 7);
 
-var intersection = getIntersection(arrowSegment, lineSegment);
-if (intersection.segment1 && intersection.segment2) {
-tween.pause();
-var dx = intersection.x - target.x;
-var dy = intersection.y - target.y;
-var distance = Math.sqrt(dx * dx + dy * dy);
-var selector = ".hit";
-if (distance < 7) {
-selector = ".loveyou";
-}
-showMessage(selector);
-}
-}
+  var dx = point.x - pivot.x;
+  var dy = point.y - pivot.y;
 
-function onMiss() {
-// Damn!
-showMessage(".missyou");
-}
+  // add a tiny random wobble for difficulty
+  var angle = Math.atan2(dy, dx) + randomAngle;
+  var bowAngle = angle - Math.PI;
 
-function showMessage(selector) {
-// handle all text animations by providing selector
-TweenMax.killTweensOf(selector);
-TweenMax.killChildTweensOf(selector);
-TweenMax.set(selector, {
-autoAlpha: 1
-});
-TweenMax.staggerFromTo(
-selector + " path",
-0.5,
-{
-rotation: -5,
-scale: 0,
-transformOrigin: "center"
-},
-{
-scale: 1,
-ease: Back.easeOut
-},
-0.05
-);
-TweenMax.staggerTo(
-selector + " path",
-0.3,
-{
-delay: 2,
-rotation: 20,
-scale: 0,
-ease: Back.easeIn
-},
-0.03
-);
+  var distance = Math.min(Math.sqrt(dx*dx + dy*dy), 50);
+  currentDistance = distance;
+  var scale = Math.min(Math.max(distance / 30, 1), 2);
+
+  // animate bow rotation & scale
+  TweenMax.to("#bow", 0.15, {
+    scaleX: scale,
+    rotation: bowAngle + "rad",
+    transformOrigin: "right center"
+  });
+
+  // rotate attached arrow group
+  TweenMax.to(".arrow-angle", 0.15, {
+    rotation: bowAngle + "rad",
+    svgOrigin: "100 250"
+  });
+
+  // slide attached arrow back based on distance
+  TweenMax.to(".arrow-angle use", 0.15, { x: -distance });
+
+  // bow polyline deformation
+  TweenMax.to("#bow polyline", 0.15, {
+    attr: {
+      points: "88,200 " + Math.min(pivot.x - (1/scale) * distance, 88) + ",250 88,300"
+    }
+  });
+
+  // compute an arc path based on pull to visualize flight curve
+  var radius = distance * 9;
+  var offset = {
+    x: Math.cos(bowAngle) * radius,
+    y: Math.sin(bowAngle) * radius
+  };
+  var arcWidth = offset.x * 3;
+
+  TweenMax.to("#arc", 0.15, {
+    attr: {
+      d:
+        "M100,250c" +
+        offset.x + "," + offset.y + "," +
+        (arcWidth - offset.x) + "," + (offset.y + 50) + "," +
+        arcWidth + ",50"
+    },
+    autoAlpha: distance / 60
+  });
 }
 
-function getMouseSVG(e) {
-// normalize mouse position within svg coordinates
-cursor.x = e.clientX;
-cursor.y = e.clientY;
-return cursor.matrixTransform(svg.getScreenCTM().inverse());
+/* ----- On release: create arrow and animate along arc ----- */
+function loose(e){
+  // restore bow visual
+  TweenMax.to("#bow", 0.5, { scaleX:1, transformOrigin:"right center", ease: Elastic.easeOut});
+  TweenMax.to("#bow polyline", 0.5, {
+    attr: { points: "88,200 88,250 88,300" },
+    ease: Elastic.easeOut
+  });
+
+  // play release sound
+  try{ soundReleasePlay(); }catch(err){}
+
+  // duplicate arrow & give it glow
+  var newArrow = document.createElementNS("http://www.w3.org/2000/svg","use");
+  newArrow.setAttributeNS("http://www.w3.org/1999/xlink","href","#arrow");
+  // apply a small glow via filter by wrapping in <g> if needed; simpler: add attribute
+  newArrow.setAttribute("filter","url(#glow)");
+  arrowsGroup.appendChild(newArrow);
+
+  // get bezier path from current arc
+  var path = MorphSVGPlugin.pathDataToBezier("#arc");
+
+  // add a faint trail (circle) that follows arrow to create glow effect
+  var trail = document.createElementNS("http://www.w3.org/2000/svg","circle");
+  trail.setAttribute("r","6");
+  trail.setAttribute("fill","#b7ff5a");
+  trail.setAttribute("opacity","0.25");
+  arrowsGroup.appendChild(trail);
+
+  // animate arrow along bezier path; autoRotate uses [x,y,rotation]
+  TweenMax.to([newArrow], 0.5, {
+    force3D:true,
+    bezier:{
+      type:"cubic",
+      values:path,
+      autoRotate:["x","y","rotation"]
+    },
+    ease:Linear.easeNone,
+    onUpdate: function(){ hitTest(this); syncTrail(this, trail); },
+    onComplete: function(){ // remove trail, arrow stays in arrowsGroup (could remove after some time)
+      TweenMax.to(trail, 0.3, { opacity:0, onComplete: function(){ try{ arrowsGroup.removeChild(trail);}catch(e){} } });
+      onMiss(); // default miss unless hitTest found intersection and paused tween
+    }
+  });
+
+  // hide attached arrow on bow
+  TweenMax.set(".arrow-angle use", { opacity: 0 });
+  // hide arc visual
+  TweenMax.to("#arc", 0.2, { opacity:0 });
+
+  // small camera/hand vibration feel
+  TweenMax.fromTo("#game", 0.08, {x:0}, {x:2, yoyo:true, repeat:1, onComplete:function(){ TweenMax.set("#game",{x:0}); }});
 }
 
-function getIntersection(segment1, segment2) {
-// find intersection point of two line segments and whether or not the point is on either line segment
-var dx1 = segment1.x2 - segment1.x1;
-var dy1 = segment1.y2 - segment1.y1;
-var dx2 = segment2.x2 - segment2.x1;
-var dy2 = segment2.y2 - segment2.y1;
-var cx = segment1.x1 - segment2.x1;
-var cy = segment1.y1 - segment2.y1;
-var denominator = dy2 * dx1 - dx2 * dy1;
-if (denominator == 0) {
-return null;
+/* sync trail circle position to arrow's transform during tween */
+function syncTrail(tweenInstance, trailEl){
+  // tweenInstance.target is array ([newArrow])
+  var arr = tweenInstance.target[0];
+  var tr = arr._gsTransform;
+  if(!tr) return;
+  var cx = tr.x + Math.cos(tr.rotation * Math.PI / 180) * 20;
+  var cy = tr.y + Math.sin(tr.rotation * Math.PI / 180) * 20;
+  trailEl.setAttribute("cx", cx);
+  trailEl.setAttribute("cy", cy);
 }
-var ua = (dx2 * cy - dy2 * cx) / denominator;
-var ub = (dx1 * cy - dy1 * cx) / denominator;
-return {
-x: segment1.x1 + ua * dx1,
-y: segment1.y1 + ua * dy1,
-segment1: ua >= 0 && ua <= 1,
-segment2: ub >= 0 && ub <= 1
-};
+
+/* ----- hit detection during flight ----- */
+function hitTest(tweenInstance){
+  // check for collisions with arrow and target
+  var arrowEl = tweenInstance.target[0];
+  var transform = arrowEl._gsTransform;
+  if(!transform) return;
+  var radians = (transform.rotation * Math.PI) / 180;
+  var arrowSegment = {
+    x1: transform.x,
+    y1: transform.y,
+    x2: Math.cos(radians) * 60 + transform.x,
+    y2: Math.sin(radians) * 60 + transform.y
+  };
+
+  var intersection = getIntersection(arrowSegment, lineSegment);
+  if(intersection && intersection.segment1 && intersection.segment2){
+    // stop the tween so arrow 'sticks' visually and show hit effects
+    tweenInstance.pause();
+
+    // compute distance from center of target to intersection
+    var dx = intersection.x - targetPoint.x;
+    var dy = intersection.y - targetPoint.y;
+    var distance = Math.sqrt(dx*dx + dy*dy);
+
+    // choose message / effect based on proximity
+    var selector = ".hit";
+    if(distance < 7) selector = ".loveyou";
+
+    // place arrow at intersection (visually)
+    try{
+      TweenMax.set(arrowEl, { x: intersection.x - 30, y: intersection.y - 5, rotation: (Math.atan2(dy,dx) * 180 / Math.PI) });
+    }catch(err){}
+
+    // play hit sound and pulse target
+    try{ soundHitPlay(); }catch(e){}
+    pulseTarget();
+
+    // show appropriate message animation
+    showMessage(selector);
+  }
 }
+
+/* show hit pulse on target */
+function pulseTarget(){
+  // quick scale & rotate flick
+  TweenMax.fromTo(target, 0.12, {scale:1}, {scale:1.08, yoyo:true, repeat:1, transformOrigin:"center center"});
+}
+
+/* called when arrow animation completes without detection */
+function onMiss(){
+  // show miss animation/sound once per miss
+  try{ soundMissPlay(); }catch(e){}
+  TweenMax.to(".missyou", 0.5, { autoAlpha:1, yoyo:true, repeat:1 });
+}
+
+/* show message (reuses existing vector groups) */
+function showMessage(selector){
+  TweenMax.killTweensOf(selector);
+  TweenMax.killChildTweensOf(selector);
+  TweenMax.set(selector, { autoAlpha: 1 });
+
+  TweenMax.staggerFromTo(
+    selector + " path",
+    0.45,
+    { rotation: -5, scale: 0, transformOrigin: "center" },
+    { scale: 1, ease: Back.easeOut },
+    0.05
+  );
+  TweenMax.staggerTo(
+    selector + " path",
+    0.35,
+    { delay: 1.8, rotation: 20, scale: 0, ease: Back.easeIn },
+    0.03
+  );
+}
+
+/* ----- helper: get mouse/touch position in SVG coordinates ----- */
+function getMouseSVG(e){
+  svgPoint.x = e.clientX;
+  svgPoint.y = e.clientY;
+  return svgPoint.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+/* find intersection between two line segments (returns point & flags) */
+function getIntersection(segment1, segment2){
+  var dx1 = segment1.x2 - segment1.x1;
+  var dy1 = segment1.y2 - segment1.y1;
+  var dx2 = segment2.x2 - segment2.x1;
+  var dy2 = segment2.y2 - segment2.y1;
+  var cx = segment1.x1 - segment2.x1;
+  var cy = segment1.y1 - segment2.y1;
+  var denominator = dy2 * dx1 - dx2 * dy1;
+  if(denominator == 0){
+    return null;
+  }
+  var ua = (dx2 * cy - dy2 * cx) / denominator;
+  var ub = (dx1 * cy - dy1 * cx) / denominator;
+  return {
+    x: segment1.x1 + ua * dx1,
+    y: segment1.y1 + ua * dy1,
+    segment1: ua >= 0 && ua <= 1,
+    segment2: ub >= 0 && ub <= 1
+  };
+}
+
+/* ----- sound wrappers with safe play (handles mobile autoplay restrictions) ----- */
+function soundReleasePlay(){
+  if(!soundRelease) soundRelease = document.getElementById("s-release");
+  try{ soundRelease.currentTime = 0; soundRelease.play(); }catch(e){}
+}
+function soundHitPlay(){
+  if(!soundHit) soundHit = document.getElementById("s-hit");
+  try{ soundHit.currentTime = 0; soundHit.play(); }catch(e){}
+}
+function soundMissPlay(){
+  if(!soundMiss) soundMiss = document.getElementById("s-miss");
+  try{ soundMiss.currentTime = 0; soundMiss.play(); }catch(e){}
+}
+
+/* Improve mobile compatibility: resume audio on first user gesture if blocked */
+function unlockAudioOnFirstGesture(){
+  var resume = function(){
+    try{
+      soundRelease.play().catch(function(){});
+      soundRelease.pause();
+      soundHit.play().catch(function(){});
+      soundHit.pause();
+      soundMiss.play().catch(function(){});
+      soundMiss.pause();
+    }catch(e){}
+    window.removeEventListener('touchstart', resume);
+    window.removeEventListener('pointerdown', resume);
+  };
+  window.addEventListener('touchstart', resume, { once:true });
+  window.addEventListener('pointerdown', resume, { once:true });
+}
+unlockAudioOnFirstGesture();
+
 </script>
 </body>
-  </html>
+    </html>
