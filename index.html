@@ -444,6 +444,10 @@ function loose(e){
     onComplete: function(){ // remove trail, arrow stays in arrowsGroup (could remove after some time)
       TweenMax.to(trail, 0.3, { opacity:0, onComplete: function(){ try{ arrowsGroup.removeChild(trail);}catch(e){} } });
       onMiss(); // default miss unless hitTest found intersection and paused tween
+      // remove the arrow after 1 seconds
+    TweenMax.delayedCall(1, () => {
+      try { arrowsGroup.removeChild(newArrow); } catch(e) {}
+    });
     }
   });
 
@@ -632,4 +636,5 @@ showMessage = function(selector){
 </script>
 </body>
     </html>
+
 
