@@ -432,24 +432,36 @@ function loose(e){
   arrowsGroup.appendChild(trail);
 
   // animate arrow along bezier path; autoRotate uses [x,y,rotation]
-  TweenMax.to([newArrow], 0.5, {
-    force3D:true,
-    bezier:{
-      type:"cubic",
-      values:path,
-      autoRotate:["x","y","rotation"]
-    },
-    ease:Linear.easeNone,
-    onUpdate: function(){ hitTest(this); syncTrail(this, trail); },
-    onComplete: function(){ // remove trail, arrow stays in arrowsGroup (could remove after some time)
-      TweenMax.to(trail, 0.3, { opacity:0, onComplete: function(){ try{ arrowsGroup.removeChild(trail);}catch(e){} } });
-      onMiss(); // default miss unless hitTest found intersection and paused tween
-      // remove the arrow after 1 seconds
-    TweenMax.delayedCall(1, () => {
-      try { arrowsGroup.removeChild(newArrow); } catch(e) {}
+TweenMax.to([newArrow], 0.5, {
+  force3D:true,
+  bezier:{
+    type:"cubic",
+    values:path,
+    autoRotate:["x","y","rotation"]
+  },
+  ease:Linear.easeNone,
+  onUpdate: function(){ hitTest(this); syncTrail(this, trail); },
+  onComplete: function(){ 
+    // remove trail
+    TweenMax.to(trail, 0.3, { 
+      opacity:0, 
+      onComplete: function(){ 
+        try{ arrowsGroup.removeChild(trail);}catch(e){} 
+      } 
     });
-    }
-  });
+
+    // call miss function
+    onMiss(); 
+
+    // delayed remove arrow
+    var arrowToRemove = newArrow; // create a stable reference
+    TweenMax.delayedCall(3, function(){
+      try { 
+        if(arrowToRemove.parentNode) arrowsGroup.removeChild(arrowToRemove); 
+      } catch(e) {}
+    });
+  }
+});
 
   // hide attached arrow on bow
   TweenMax.set(".arrow-angle use", { opacity: 0 });
@@ -636,5 +648,6 @@ showMessage = function(selector){
 </script>
 </body>
     </html>
+
 
 
